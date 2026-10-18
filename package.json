@@ -1,0 +1,13 @@
+{
+  "name": "lythumb-viewer",
+  "version": "1.0.0",
+  "description": "Dependency-free image viewer, lightbox alternative",
+  "scripts": {
+    "test": "node --test tests/lythumb.test.cjs",
+    "build": "esbuild lythumb.js --minify --target=es2022 --outfile=dist/lythumb.min.js && esbuild lythumb.css --minify --outfile=dist/lythumb.min.css"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsdom": "30.1.3"
+  }
+}

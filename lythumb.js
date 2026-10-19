@@ -1,4 +1,4 @@
-/*! Lythumb-viewer v1.0.0 — dependency-free image viewer | Copyright 2026 Lycolia Rizzim | AGPL-3.0 */
+/*! Lythumb-viewer v1.1.0 — dependency-free image viewer | Copyright 2026 Lycolia Rizzim | AGPL-3.0 */
 (function (global) {
   'use strict';
   /*! Icons: Material Symbols | Copyright Google LLC | Apache-2.0 | https://www.apache.org/licenses/LICENSE-2.0 */
@@ -49,7 +49,7 @@
       if (this.closing || !this.key) return;
       if (this.parseHash()?.a !== this.current) this.close(false);
     }
-    open(a, fromHash = false) {
+    open(a, fromHash = false, container = document.body) {
       if (this.root || !a?.matches?.('a[data-lythumb][href]') || !this.safe(a.href)) return;
       this.trigger = a; this.key = a.dataset.lythumb || '';
       this.items = this.key ? this.links().filter(x => x.dataset.lythumb === this.key) : [a];
@@ -66,13 +66,19 @@
       this.caption = this.root.querySelector('.lythumb-caption'); this.thumbs = this.root.querySelector('.lythumb-thumbs');
       this.zoomButton = this.root.querySelector('[data-action=zoom]');
       this.prev = this.root.querySelector('[data-action=prev]'); this.next = this.root.querySelector('[data-action=next]');
-      this.background = [...document.body.children].map(el => ({el, inert: el.inert}));
+      // Show inside the container (e.g. a modal <dialog>, whose outside the browser keeps inert and below it).
+      // Everything else stays inert: the container's children and the siblings of each ancestor up to <body>.
+      if (!(container instanceof HTMLElement) || !document.body.contains(container)) container = document.body;
+      const others = [...container.children];
+      for (let el = container; el !== document.body; el = el.parentElement) others.push(...[...el.parentElement.children].filter(x => x !== el));
+      this.background = others.map(el => ({el, inert: el.inert}));
       this.background.forEach(x => { x.el.inert = true; });
       this.bodyStyle = { overflow: document.body.style.overflow, marginRight: document.body.style.marginRight };
+      this.container = container; this.containerOverflow = container.style.overflow;
       this.scroll = [scrollX, scrollY];
       const gap = innerWidth - document.documentElement.clientWidth;
       if (gap > 0 && !touchUI() && document.body.scrollHeight > innerHeight) document.body.style.marginRight = `${parseFloat(getComputedStyle(document.body).marginRight) + gap}px`;
-      document.body.style.overflow = 'hidden'; document.body.append(this.root);
+      document.body.style.overflow = 'hidden'; container.style.overflow = 'hidden'; container.append(this.root);
       this.root.addEventListener('click', e => this.click(e), {signal});
       this.root.addEventListener('pointerdown', e => this.down(e), {signal});
       this.root.addEventListener('pointermove', e => this.move(e), {signal});
@@ -429,7 +435,7 @@
         if(this.root!==root)return; clearTimeout(this.closeTimer);
         root.remove();this.root=null;this.current=null;this.image=null;this.ready=false;this.preloaded=[];
         this.background.forEach(x=>{x.el.inert=x.inert;});
-        document.body.style.overflow=this.bodyStyle.overflow;document.body.style.marginRight=this.bodyStyle.marginRight;
+        this.container.style.overflow=this.containerOverflow;document.body.style.overflow=this.bodyStyle.overflow;document.body.style.marginRight=this.bodyStyle.marginRight;
         window.scrollTo(...this.scroll);
         if(back?.isConnected)back.focus({preventScroll:true});else document.body.focus({preventScroll:true});
         this.closing=false;
@@ -451,6 +457,6 @@
     }
   }
   const viewer=new Viewer();
-  global.Lythumb={init:()=>viewer.init(),open:a=>{viewer.init();viewer.open(a);},close:()=>viewer.close(),destroy:()=>viewer.destroy()};
+  global.Lythumb={init:()=>viewer.init(),open:(a,options={})=>{viewer.init();viewer.open(a,false,options.container);},close:()=>viewer.close(),destroy:()=>viewer.destroy()};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>viewer.init(),{once:true});else viewer.init();
 })(window);

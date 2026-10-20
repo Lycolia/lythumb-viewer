@@ -4,8 +4,6 @@
 
 jQuery不要で、JSとCSSのみで動きます。LightboxやFancyboxの置き換えを目的に開発しました。
 
-特に[Fancybox v3.5.7](https://github.com/fancyapps/fancybox)からjQueryを外すことを核心として開発しましたが、LLMによる開発では肉薄が限界で、ライセンス違反しないように同等品を作るのが難しく、開発を中断しました。
-
 ## 特長
 
 - 同じグループの画像を前後にめくれるギャラリー表示
